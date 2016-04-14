@@ -1,0 +1,127 @@
+extends layout
+ 
+block content
+  .jumbotron
+    .container 
+      h1 RESTful api with node 
+      p As this site's administrator you're granted to create, retrieve, update and delete to manage this site 
+      p As this site's guest you're granted to create, update, and delete to manage your personal account 
+
+  nav
+    ul.nav.nav-tabs
+      li(role='presentation') 
+          a#admin admin
+      li.active(role='presentation') 
+        a#guest guest
+      form(class='form-inline', action='/users/id', method='get')
+        input(type='submit', class='btn btn-default', value='get')
+
+  // Get
+  .panel#users-tb.panel-default(hidden=true)
+    h1.panel-heading Get all users
+    table.table.table-hover
+      th username
+      th password
+      each user in users
+        tr
+          td= user.name
+          td= user.passwd
+
+  // Post 
+  .panel.panel-default
+    h1.panel-heading Create a new user
+    form#create-form(class='form-inline', action='/users/add', method='post')
+      .form-group.col-sm-3
+        label(for='username') username:&nbsp 
+        input(type='text', class='form-control', placeholder='name', name='name')
+      .form-group.col-sm-3
+        label(for='password') password:&nbsp 
+        input(type='password', class='form-control', placeholder='password', name='passwd')
+      input#create-btn(type='submit', class='btn btn-primary', value='create')
+
+  // Put
+  .panel.panel-default
+    h1.panel-heading Update a user
+    form#update-form(class='form-inline', action='/users/update', method='post')
+      .form-group.col-sm-3
+        label(for='username') username:&nbsp 
+        input(type='text', class='form-control', placeholder='name', name='name')
+      .form-group.col-sm-3
+        label(for='password') password:&nbsp
+        input(type='password', class='form-control', placeholder='password', name='passwd')
+      input#update-btn(type='submit', class='btn btn-warning' value='update')
+
+  // Delete
+  .panel.panel-default
+    h1.panel-heading Delete a user
+    form#delete-form(class='form-inline', action='/users/del', method='post')
+      .form-group.col-sm-3
+        label(for='username') username:&nbsp
+        input(type='text', class='form-control', placeholder='name', name='name')
+      .form-group.col-sm-4
+        label(for='password') password(confirm):&nbsp
+        input(type='password', class='form-control', placeholder='password', name='passwd')
+      input#delete-btn(type='submit', class='btn btn-danger' value='delete')
+
+  // Client-side script 
+  script.
+    $(document).ready(function() {
+      $('#admin').click(function() {
+        $(this).parent().attr('class', 'active');
+        $('#guest').parent().attr('class', '');
+        $('#users-tb').show();
+      });
+      $('#guest').click(function() {
+        $(this).parent().attr('class', 'active');
+        $('#admin').parent().attr('class', '');
+        $('#users-tb').hide();
+      });
+
+      // Ajax calls
+      $('#create-btn').click(function(e) {
+        // prevent form dafault submit && full page reload behavior
+        e.preventDefault();
+        $.ajax({
+          type: $('#create-form').attr('method'),
+          url: 'users/create',
+          data: $('#create-form').serialize(),
+          success: function(res) { 
+            $('#create-form').append( $('<span>').html(res) ); 
+          }, 
+          error: function(err) { 
+            alert('ajax call fail!');
+          }
+        });
+      });
+      $('#update-btn').click(function(e) {
+        e.preventDefault();
+        $.ajax({
+          type: 'put',
+          url: 'users/update', 
+          data: $('#update-form').serialize(),
+          dataType: 'json',
+          success: function(res) { 
+            $('#update-form').append( $('<span>').html(JSON.stringify(res.result)) ); 
+          }, 
+          error: function(err) { 
+            alert('ajax call fail!');
+          }
+        });
+      });
+      $('#delete-btn').click(function(e) {
+        e.preventDefault();
+        $.ajax({
+          type: 'delete',
+          url: '/users/delete',
+          data: $('#delete-form').serialize(),
+          success: function(res) { 
+            $('#delete-form').append( $('<span>').html('deleted') ); 
+            alert(res);
+          }, 
+          error: function(err) { 
+            alert('ajax call fail!');
+          }
+        });
+      });
+    });
+
